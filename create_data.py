@@ -1,0 +1,123 @@
+import pandas as pd
+
+# Define the 100 drug-food interaction records
+data = [
+    # --- Antibiotics & Antifungals ---
+    ["Tetracycline", "Dairy Products", "Major", "Calcium binds to drug (chelation), preventing absorption.", "Tetracycline Antibiotic"],
+    ["Doxycycline", "Milk/Iron", "Moderate", "Divalent cations reduce absorption. Take 1-2 hours apart.", "Tetracycline Antibiotic"],
+    ["Ciprofloxacin", "Milk/Yogurt", "Moderate", "Calcium inhibits absorption. Avoid co-administration.", "Quinolone Antibiotic"],
+    ["Levofloxacin", "Calcium Supplements", "Moderate", "Chelation reduces bioavailability.", "Quinolone Antibiotic"],
+    ["Erythromycin", "Fruit Juice", "Minor", "Acidic drinks can decrease drug stability and absorption.", "Macrolide Antibiotic"],
+    ["Azithromycin", "Food", "Minor", "Food can decrease rate of absorption; take 1h before or 2h after.", "Macrolide Antibiotic"],
+    ["Nitrofurantoin", "Food", "Minor", "Food actually INCREASES absorption and reduces GI upset.", "Urinary Antiseptic"],
+    ["Griseofulvin", "High Fat Meals", "Minor", "Fatty meals significantly improve drug absorption.", "Antifungal"],
+    ["Itraconazole", "Cola/Acidic Drinks", "Moderate", "Requires acidic environment for absorption.", "Antifungal"],
+    ["Ketoconazole", "Antacids/Milk", "Moderate", "Increased pH reduces solubility and absorption.", "Antifungal"],
+    ["Metronidazole", "Alcohol", "Major", "Causes Disulfiram-like reaction (nausea, flushing, tachycardia).", "Antiprotozoal"],
+    ["Tinidazole", "Alcohol", "Major", "Disulfiram-like reaction; avoid alcohol for 72 hours after dose.", "Antiprotozoal"],
+    ["Rifampin", "Food", "Moderate", "Food significantly delays absorption. Take on empty stomach.", "Antitubercular"],
+    ["Isoniazid", "Tyramine Foods", "Moderate", "Risk of hypertension and flushing.", "Antitubercular"],
+    ["Isoniazid", "Tuna/Fish", "Minor", "High histamine levels in fish may cause itching/palpitations.", "Antitubercular"],
+
+    # --- Cardiovascular Drugs ---
+    ["Warfarin", "Spinach/Kale", "Major", "Vitamin K antagonizes drug effect. Maintain consistent intake.", "Anticoagulant"],
+    ["Warfarin", "Cranberry Juice", "Moderate", "May increase INR and risk of bleeding.", "Anticoagulant"],
+    ["Warfarin", "Garlic/Ginger", "Minor", "May have additive antiplatelet effects.", "Anticoagulant"],
+    ["Atorvastatin", "Grapefruit Juice", "Moderate", "CYP3A4 inhibition increases risk of myopathy.", "HMG-CoA Reductase Inhibitor"],
+    ["Simvastatin", "Grapefruit Juice", "Major", "High risk of rhabdomyolysis due to increased drug levels.", "HMG-CoA Reductase Inhibitor"],
+    ["Lovastatin", "Food", "Minor", "Absorption is increased when taken with food.", "HMG-CoA Reductase Inhibitor"],
+    ["Digoxin", "High Fiber Foods", "Minor", "Fiber (oatmeal) reduces drug absorption.", "Cardiac Glycoside"],
+    ["Digoxin", "Licorice", "Major", "Glycyrrhiza causes potassium loss, increasing digoxin toxicity.", "Cardiac Glycoside"],
+    ["Amiodarone", "Grapefruit Juice", "Major", "Increases drug concentration significantly.", "Antiarrhythmic"],
+    ["Spironolactone", "Bananas/Potassium", "Moderate", "Risk of hyperkalemia (high potassium).", "K-Sparing Diuretic"],
+    ["Eplerenone", "Grapefruit Juice", "Moderate", "Increases drug levels via CYP3A4 inhibition.", "K-Sparing Diuretic"],
+    ["Captopril", "Food", "Moderate", "Food reduces absorption by 35%. Take 1h before meals.", "ACE Inhibitor"],
+    ["Enalapril", "Potassium Salt Substitutes", "Moderate", "Increased risk of high blood potassium levels.", "ACE Inhibitor"],
+    ["Felodipine", "Grapefruit Juice", "Major", "Severe drop in blood pressure possible.", "Calcium Channel Blocker"],
+    ["Nifedipine", "Grapefruit Juice", "Moderate", "Increased drug levels and risk of edema.", "Calcium Channel Blocker"],
+    ["Verapamil", "Grapefruit Juice", "Moderate", "Increases drug concentration.", "Calcium Channel Blocker"],
+    ["Propranolol", "High Protein Food", "Minor", "Protein may increase bioavailability of propranolol.", "Beta Blocker"],
+    ["Metoprolol", "Food", "Minor", "Food increases bioavailability.", "Beta Blocker"],
+    ["Isosorbide Mononitrate", "Alcohol", "Major", "Severe hypotension (low blood pressure) and fainting.", "Nitrate/Vasodilator"],
+
+    # --- CNS & Pain ---
+    ["Phenelzine", "Aged Cheese", "Major", "Tyramine causes hypertensive crisis (Cheese Effect).", "MAO Inhibitor"],
+    ["Tranylcypromine", "Red Wine/Beer", "Major", "High tyramine content; severe BP spike risk.", "MAO Inhibitor"],
+    ["Selegiline", "Tyramine Foods", "Moderate", "Dietary restrictions required at higher doses.", "MAO Inhibitor"],
+    ["Lithium", "Caffeine", "Moderate", "Caffeine can increase lithium excretion, lowering levels.", "Antimanic"],
+    ["Lithium", "Low Sodium Diet", "Major", "Low salt causes kidneys to retain lithium, leading to toxicity.", "Antimanic"],
+    ["Levodopa", "High Protein Meal", "Moderate", "Protein amino acids compete for brain transport.", "Anti-Parkinson"],
+    ["Phenytoin", "Enteral Feedings", "Moderate", "Tube feeds reduce drug absorption. Hold feed 2h before/after.", "Antiepileptic"],
+    ["Valproic Acid", "Carbonated Drinks", "Minor", "Soda may cause mouth/throat irritation when taking liquid form.", "Antiepileptic"],
+    ["Carbamazepine", "Grapefruit Juice", "Moderate", "Increases drug levels and neurological side effects.", "Antiepileptic"],
+    ["Zolpidem", "High Fat Meals", "Minor", "Delays onset of sleep action.", "Sedative/Hypnotic"],
+    ["Diazepam", "Grapefruit Juice", "Moderate", "Increases sedation levels.", "Benzodiazepine"],
+    ["Alprazolam", "Grapefruit Juice", "Moderate", "Increased drowsiness risk.", "Benzodiazepine"],
+    ["Sertraline", "Alcohol", "Moderate", "Increases CNS depression and impairment.", "SSRI Antidepressant"],
+    ["Fluoxetine", "Alcohol", "Minor", "General advice to avoid alcohol with antidepressants.", "SSRI Antidepressant"],
+    ["Aspirin", "Alcohol", "Moderate", "Increases risk of gastric mucosal bleeding.", "NSAID"],
+    ["Ibuprofen", "Food", "Minor", "Take with food to protect stomach lining.", "NSAID"],
+    ["Indomethacin", "Food", "Minor", "Reduces GI irritation.", "NSAID"],
+    ["Naproxen", "Alcohol", "Moderate", "Increased risk of stomach ulcers.", "NSAID"],
+    ["Morphine", "Alcohol", "Major", "Lethal respiratory depression risk.", "Opioid"],
+
+    # --- Endocrine & Metabolism ---
+    ["Metformin", "Alcohol", "Major", "Risk of Lactic Acidosis (Emergency).", "Antidiabetic"],
+    ["Glyburide", "Alcohol", "Moderate", "Can cause severe hypoglycemia (low blood sugar).", "Sulfonylurea"],
+    ["Levothyroxine", "Soy/Walnuts", "Moderate", "May reduce absorption. Take on empty stomach.", "Thyroid Hormone"],
+    ["Levothyroxine", "Coffee", "Moderate", "Coffee reduces absorption significantly. Wait 60 mins.", "Thyroid Hormone"],
+    ["Levothyroxine", "Calcium/Iron", "Major", "Minerals block absorption. Separate by 4 hours.", "Thyroid Hormone"],
+    ["Alendronate", "Coffee/Juice", "Major", "Only plain water allowed; anything else blocks absorption.", "Bisphosphonate"],
+    ["Risedronate", "Dairy Products", "Major", "Calcium blocks absorption completely.", "Bisphosphonate"],
+    ["Glipizide", "Food", "Minor", "Take 30 mins before meals for best effect.", "Sulfonylurea"],
+    ["Insulin", "Alcohol", "Major", "Delayed hypoglycemia risk; masks symptoms of low sugar.", "Hormone"],
+
+    # --- Respiratory & Misc ---
+    ["Theophylline", "Caffeine", "Moderate", "Additive CNS stimulation and tremors.", "Xanthine/Bronchodilator"],
+    ["Theophylline", "Charbroiled Beef", "Minor", "PAHs in grilled meat induce metabolism, lowering drug levels.", "Xanthine/Bronchodilator"],
+    ["Theophylline", "High Carbohydrate", "Minor", "Decreases drug clearance.", "Xanthine/Bronchodilator"],
+    ["Montelukast", "Food", "Minor", "Can be taken with or without food.", "Leukotriene Antagonist"],
+    ["Fexofenadine", "Fruit Juices", "Moderate", "Apple/Orange/Grapefruit juice reduce absorption.", "Antihistamine"],
+    ["Iron (Ferrous Sulfate)", "Tea/Coffee", "Minor", "Tannins/Oxalates reduce iron absorption.", "Mineral"],
+    ["Iron (Ferrous Sulfate)", "Orange Juice", "Minor", "Vitamin C INCREASES absorption (Positive interaction).", "Mineral"],
+    ["Cyclosporine", "Grapefruit Juice", "Major", "Increases toxicity risk for kidneys.", "Immunosuppressant"],
+    ["Tacrolimus", "High Fat Meals", "Moderate", "Significantly reduces absorption.", "Immunosuppressant"],
+    ["Methotrexate", "Alcohol", "Major", "High risk of hepatotoxicity (liver damage).", "Antineoplastic"],
+    ["Mercaptopurine", "Milk/Dairy", "Moderate", "Xanthine oxidase in milk inactivates the drug.", "Antineoplastic"],
+    ["Sildenafil", "Grapefruit Juice", "Moderate", "Increases drug levels and risk of low blood pressure.", "PDE5 Inhibitor"],
+    ["Tadalafil", "Alcohol", "Moderate", "May cause orthostatic hypotension.", "PDE5 Inhibitor"],
+    ["Tamoxifen", "Grapefruit Juice", "Minor", "Possible interference with drug activation.", "Antiestrogen"],
+    ["Potassium Chloride", "Licorice", "Minor", "Licorice causes potassium loss, counteracting the drug.", "Electrolyte"],
+    ["Omeprazole", "Food", "Minor", "Take 30-60 mins before a meal for best acid suppression.", "PPI"],
+    ["Lansoprazole", "Food", "Minor", "Food reduces bioavailability by 50%.", "PPI"],
+    ["Sucralfate", "Food", "Moderate", "Must be taken on empty stomach to bind to ulcer site.", "GI Protectant"],
+    ["Pancrelipase", "Alkaline Foods", "Minor", "Do not crush/chew; alkaline food destroys enzymes.", "Enzyme"],
+    ["Warfarin", "Ginseng", "Moderate", "May decrease the effectiveness of Warfarin.", "Anticoagulant"],
+    ["St. John's Wort", "Many Drugs", "Major", "Induces CYP450; reduces levels of many meds (not a food but common).", "Herbal"],
+    ["Ginkgo Biloba", "NSAIDs", "Moderate", "Increases risk of bleeding.", "Herbal"],
+    ["Calcium Carbonate", "Spinach", "Minor", "Oxalates in spinach reduce calcium absorption.", "Supplement"],
+    ["Penicillin V", "Food", "Moderate", "Food reduces absorption. Take on empty stomach.", "Antibiotic"],
+    ["Dicloxacillin", "Food", "Major", "Absorption is greatly reduced by food.", "Antibiotic"],
+    ["Bisacodyl", "Milk", "Moderate", "Dissolves enteric coating too early; causes stomach cramps.", "Laxative"],
+    ["Senna", "Dairy", "Minor", "May affect drug transit time.", "Laxative"],
+    ["Quinine", "Grapefruit Juice", "Moderate", "Increases plasma concentration of quinine.", "Antimalarial"],
+    ["Chloroquine", "Antacids", "Minor", "Reduces absorption of Chloroquine.", "Antimalarial"],
+    ["Pyrazinamide", "Food", "Minor", "May delay absorption slightly.", "Antitubercular"],
+    ["Ethambutol", "Aluminum Antacids", "Minor", "Reduces ethambutol absorption.", "Antitubercular"],
+    ["Prednisone", "Salt (Sodium)", "Moderate", "Increases fluid retention and blood pressure.", "Corticosteroid"],
+    ["Dexamethasone", "Alcohol", "Minor", "Increases risk of GI upset.", "Corticosteroid"],
+    ["Finasteride", "Food", "Minor", "Food does not affect absorption.", "5-alpha Reductase Inhibitor"],
+    ["Tamsulosin", "Food", "Minor", "Take 30 mins after the same meal each day.", "Alpha Blocker"],
+    ["Sotalol", "Milk/Calcium", "Moderate", "Reduces drug absorption and effectiveness.", "Beta Blocker"],
+    ["Flecainide", "Milk (In Infants)", "Moderate", "Strict milk diet can affect drug levels.", "Antiarrhythmic"],
+    ["Propafenone", "Grapefruit Juice", "Moderate", "Increases drug concentration.", "Antiarrhythmic"],
+    ["Buspirone", "Grapefruit Juice", "Major", "Significantly increases drug levels and drowsiness.", "Anxiolytic"]
+]
+
+# Create DataFrame
+df = pd.DataFrame(data, columns=["drug_name", "food_item", "severity", "description", "drug_class"])
+
+# Save to CSV
+df.to_csv("drug_interactions.csv", index=False)
+
+print(f"Successfully created 'drug_interactions.csv' with {len(df)} records!")
