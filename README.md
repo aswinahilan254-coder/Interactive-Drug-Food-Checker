@@ -17,4 +17,4 @@ A lightweight Python desktop application built with Tkinter and Pandas. This too
 4. Launch the app: `python main.py`
 
 ## Disclaimer
-This tool is for educational purposes (GPAT preparation) and support only. It is not a substitute for professional medical advice.
+This tool is for educational purposes and support only. It is not a substitute for professional medical advice.
